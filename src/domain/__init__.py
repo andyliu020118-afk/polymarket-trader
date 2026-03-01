@@ -18,10 +18,20 @@ from .enums import (
     RiskAction,
     Urgency,
 )
+from .strategies import (
+    TradingStrategy,
+    StrategyConfig,
+    StrategyContext,
+    Signal,
+    SpreadArbitrageStrategy,
+    OrderBookImbalanceStrategy,
+    SimpleTrendStrategy,
+    CompositeStrategy,
+)
 
 __all__ = [
     "Market",
-    "Order", 
+    "Order",
     "Position",
     "Price",
     "OrderBook",
@@ -38,4 +48,12 @@ __all__ = [
     "SignalAction",
     "RiskAction",
     "Urgency",
+    "TradingStrategy",
+    "StrategyConfig",
+    "StrategyContext",
+    "Signal",
+    "SpreadArbitrageStrategy",
+    "OrderBookImbalanceStrategy",
+    "SimpleTrendStrategy",
+    "CompositeStrategy",
 ]
