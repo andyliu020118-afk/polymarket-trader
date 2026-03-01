@@ -1,0 +1,215 @@
+# Polymarket 交易系统 - 主配置文件
+# 复制为 settings.yaml 并根据环境修改
+
+app:
+  name: "Polymarket Trader"
+  version: "0.1.0"
+  environment: "development"  # development | staging | production
+  debug: false
+
+# 区块链配置
+blockchain:
+  # Polygon 网络配置
+  network: "polygon-mainnet"
+  rpc_url: "https://polygon-rpc.com"
+  # 或使用 Alchemy/Infura:
+  # rpc_url: "https://polygon-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+  
+  # 合约地址 (Polygon Mainnet)
+  contracts:
+    usdc: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+    ctf_exchange: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"
+    neg_risk_adapter: "0xd91E80Cbcf1f9D2Dc28674c32E89b69E1556E130"
+  
+  # Gas 设置
+  gas:
+    default_limit: 300000
+    price_multiplier: 1.1  # gasPrice * 1.1
+    max_priority_fee_gwei: 30
+
+# Polymarket API 配置
+polymarket:
+  api_base: "https://clob.polymarket.com"
+  gamma_api: "https://gamma-api.polymarket.com"
+  
+  # API 认证 (生产环境需要)
+  api_key: ""      # 从 Polymarket 申请
+  api_secret: ""   # API Secret
+  
+  # 请求配置
+  request:
+    timeout: 30
+    max_retries: 3
+    retry_delay: 1.0
+
+# 风控配置
+risk:
+  # 仓位管理
+  position:
+    max_position_per_trade: 0.10      # 单笔仓位 ≤10%
+    max_positions_total: 5             # 最大持仓数
+    min_liquidity_usd: 10000          # 最小流动性 $10k
+    min_market_volume_24h: 5000       # 最小24h交易量
+  
+  # 止损设置
+  stop_loss:
+    per_trade: 0.02                   # 单笔止损 -2%
+    daily_limit: 0.03                 # 日止损 -3%
+    trailing_stop: 0.01               # 追踪止损 1%
+    max_drawdown: 0.05                # 最大回撤 5%
+  
+  # 熔断机制
+  circuit_breaker:
+    enabled: true
+    price_volatility: 0.20            # 5分钟波动 >20%
+    volume_anomaly: 3.0               # 成交量异常倍数
+    pause_duration_minutes: 30        # 暂停30分钟
+    cooldown_minutes: 60              # 冷却时间
+  
+  # 交易时间
+  trading_hours:
+    enabled: false                    # 是否限制交易时间
+    timezone: "UTC"
+    start_hour: 6                     # 06:00 UTC
+    end_hour: 22                      # 22:00 UTC
+    weekends_allowed: true
+  
+  # API限流
+  rate_limit:
+    enabled: true
+    min_interval_seconds: 1           # 最小请求间隔
+    max_requests_per_minute: 60       # 每分钟最大请求
+    max_orders_per_minute: 10         # 每分钟最大订单
+
+# 交易参数
+trading:
+  # 订单设置
+  order:
+    default_slippage: 0.01            # 默认滑点 1%
+    max_slippage: 0.05                # 最大滑点 5%
+    max_order_size: 1000              # 最大单笔订单 1000 USDC
+    min_order_size: 1                 # 最小单笔订单 1 USDC
+    default_expiry_minutes: 10        # 订单默认过期时间
+  
+  # 执行策略
+  execution:
+    use_market_order: false           # 优先使用限价单
+    partial_fill_accepted: true       # 接受部分成交
+    retry_on_failure: true            # 失败重试
+    max_retry_attempts: 3
+
+# 策略配置
+strategy:
+  # 全局策略设置
+  global:
+    enabled_strategies:
+      - "spread_arbitrage"
+      - "orderbook_imbalance"
+      - "simple_trend"
+    
+    min_confidence: 0.55              # 最小信号置信度
+    signal_expiry_seconds: 300        # 信号有效期 5分钟
+    max_concurrent_signals: 3         # 最大并发信号数
+  
+  # 价差套利策略
+  spread_arbitrage:
+    enabled: true
+    min_spread: 0.02                  # 最小价差 2%
+    min_liquidity: 50000              # 最小流动性 50k
+    max_hold_time_minutes: 60         # 最大持仓时间
+    take_profit: 0.01                 # 止盈 1%
+  
+  # 订单簿不平衡策略
+  orderbook_imbalance:
+    enabled: true
+    imbalance_threshold: 2.0          # 深度比阈值
+    min_depth_usd: 10000              # 最小深度 10k
+    lookback_periods: 3               # 观察周期
+  
+  # 简单趋势跟踪策略
+  simple_trend:
+    enabled: true
+    short_ma_period: 5                # 短期均线
+    long_ma_period: 20                # 长期均线
+    trend_strength_threshold: 0.01    # 趋势强度阈值
+    volume_confirmation: true         # 需要成交量确认
+
+# 数据存储
+data:
+  # 数据库配置
+  database:
+    type: "sqlite"                    # sqlite | postgresql
+    path: "data/trading.db"           # SQLite 路径
+    # PostgreSQL 配置 (如果使用)
+    # host: "localhost"
+    # port: 5432
+    # database: "polymarket"
+    # user: "trader"
+    # password: ""
+  
+  # 缓存配置
+  cache:
+    enabled: true
+    type: "memory"                    # memory | redis
+    ttl_seconds: 60
+    # Redis 配置
+    # redis_url: "redis://localhost:6379/0"
+  
+  # 日志存储
+  logs:
+    level: "INFO"                     # DEBUG | INFO | WARNING | ERROR
+    format: "json"                    # json | text
+    retention_days: 7
+    max_file_size_mb: 100
+
+# 通知配置
+notifications:
+  enabled: false
+  
+  # 交易通知
+  trade:
+    on_order_filled: true
+    on_position_closed: true
+    on_stop_loss_triggered: true
+  
+  # 风控通知
+  risk:
+    on_daily_limit: true
+    on_circuit_breaker: true
+    on_error: true
+  
+  # 通知渠道 (选择实现)
+  channels:
+    # telegram:
+    #   bot_token: ""
+    #   chat_id: ""
+    # 
+    # discord:
+    #   webhook_url: ""
+    # 
+    # email:
+    #   smtp_host: ""
+    #   smtp_port: 587
+    #   username: ""
+    #   password: ""
+    #   to_address: ""
+
+# 监控配置
+monitoring:
+  enabled: true
+  
+  # 健康检查
+  health_check:
+    interval_seconds: 30
+    timeout_seconds: 5
+  
+  # 性能指标
+  metrics:
+    enabled: true
+    export_interval_seconds: 60
+    
+  # 关键指标告警阈值
+  alerts:
+    max_latency_ms: 5000
+    min_balance_usdc: 10
+    error_rate_threshold: 0.05
