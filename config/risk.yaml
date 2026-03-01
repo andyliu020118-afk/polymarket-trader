@@ -1,0 +1,43 @@
+# Polymarket 交易系统 - 配置文件
+
+risk:
+  # 仓位管理
+  position:
+    max_position_per_trade: 0.10      # 单笔仓位 ≤10%
+    max_positions_total: 5             # 最大持仓数
+    min_liquidity_usd: 10000          # 最小流动性
+    
+  # 止损设置
+  stop_loss:
+    per_trade: 0.02                   # 单笔止损 -2%
+    daily_limit: 0.03                 # 日止损 -3%
+    trailing_stop: 0.01               # 追踪止损 1%
+    
+  # 熔断机制
+  circuit_breaker:
+    price_volatility: 0.20            # 5分钟波动 >20%
+    pause_duration_minutes: 30        # 暂停30分钟
+    
+  # 交易时间
+  trading_hours:
+    timezone: "UTC"
+    start: 6                          # 06:00 UTC
+    end: 22                           # 22:00 UTC
+
+# 交易参数
+trading:
+  default_slippage: 0.01             # 默认滑点 1%
+  max_order_size: 1000               # 最大单笔订单 1000 USDC
+  min_order_size: 1                  # 最小单笔订单 1 USDC
+  
+# 策略参数
+strategy:
+  # 价差套利策略
+  spread_arbitrage:
+    min_spread: 0.02                 # 最小价差 2%
+    min_liquidity: 50000             # 最小流动性 50k
+    
+  # 订单簿不平衡策略
+  orderbook_imbalance:
+    imbalance_threshold: 2.0         # 深度比阈值
+    min_depth_usd: 10000             # 最小深度 10k
